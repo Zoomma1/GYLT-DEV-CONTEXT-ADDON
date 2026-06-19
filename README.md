@@ -6,6 +6,11 @@ already knowing the shape of your repo.
 
 It is the reference example of a GYLT addon — clone it, run `install.sh`, done.
 
+> **Works standalone.** You don't need GYLT to use this addon — `install.sh` drops everything
+> straight into `~/.claude`. But it gets more powerful *with* GYLT: GYLT's memory mechanism
+> (daily notes, session recaps, persistent project knowledge) compounds with the per-repo context
+> this addon builds — the agent ends up remembering both **the codebase** and **your work on it**.
+
 ## What you get
 
 | Piece | What it does |
