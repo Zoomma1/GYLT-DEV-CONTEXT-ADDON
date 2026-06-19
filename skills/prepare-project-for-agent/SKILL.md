@@ -34,18 +34,46 @@ Loading is automatic: the SessionStart hook `~/.claude/hooks/load-project-contex
    - Keep → stop, show the path to the existing README
 6. Create `CONTEXT_DIR` if absent: `mkdir -p "$CONTEXT_DIR"`.
 
-## Step 2 — Run graphify then move the output
+## Step 2 — Obtain the graph
 
-**graphify behavior**: graphify writes its output to `<target-path>/graphify-out/`, i.e. **inside the target codebase**, regardless of the cwd at invocation. Our "zero files in the codebase" rule therefore requires a post-run `mv`. During execution (~10s), `graphify-out/` lives temporarily in the codebase — a short, non-destructive, accepted transgression. Once graphify is done, we move it.
+### 2.0 — Reuse an existing graph if present (safeguard)
+
+**Before running anything, check whether a graph already exists — if so, use it as-is and do NOT regenerate:**
+
+- `<CWD>/graphify-out/graph.json` — a graph committed in the repo (e.g. a teammate ran full mode), or
+- `<CONTEXT_DIR>/graphify-out/graph.json` — a prior run's graph in the store.
+
+If found:
+- Tell the user: *"Existing graph found at `<path>` — using it as-is (not regenerating). To force a fresh extraction, re-run and ask explicitly for a rebuild."*
+- If the graph is in the repo but not yet in the store → `cp -R "$CWD/graphify-out" "$CONTEXT_DIR/graphify-out"` (so the README and the hook read it).
+- **Skip 2.1–2.3 entirely** — jump to Step 2.5 (socket), then Step 3 (read) and Step 4 (write the README).
+
+Only if **no** graph exists anywhere, continue below.
+
+### Choose the run mode
+
+graphify can run two ways. Ask via AskUserQuestion, store the choice as `MODE` (`minimal` | `full`):
+
+> How should graphify run for `<SLUG>`?
+> - **Minimal** (default) — fast CLI extraction, output kept only in the context store. **Zero footprint in the repo.**
+> - **Full** — also installs graphify's live integration, committed to the repo so the **whole team** benefits on clone: the interactive `graph.html`, the **PreToolUse hook** (injects graph context on every tool call), and the **MCP server** (agent queries the graph live).
+
+> **Full mode is a deliberate, controlled trade of the "zero footprint" rule for a shared team artifact.** Default to `minimal` if the user is unsure.
+
+**graphify behavior**: graphify writes to `<target-path>/graphify-out/` (inside the codebase), regardless of cwd. In `minimal` we move it out post-run (zero footprint); in `full` we keep it in the repo (shared) and copy to the store.
 
 ### 2.1. Run graphify
 
 ```bash
 graphify update "$CWD" --no-cluster
-graphify cluster-only "$CWD" --no-viz
 ```
 
-`--no-viz` on `cluster-only` skips `graph.html` generation (heavy on large graphs, useless here).
+Then cluster — **minimal** skips the viz, **full** keeps it (produces `graph.html`, part of what the team gets):
+
+```bash
+graphify cluster-only "$CWD" --no-viz   # MODE=minimal
+graphify cluster-only "$CWD"            # MODE=full  (generates graph.html)
+```
 
 ### 2.2. Check the expected files
 
@@ -68,26 +96,46 @@ If either is missing, or graphify returned a non-zero exit code:
 - Do not retry graphify with other flags.
 - Manual mode: explore the repo (structure, key files, visible conventions) and write the curated README without `GRAPH_REPORT.md` as the source.
 
-### 2.3. Move graphify-out into the context folder
+### 2.3. Place the output (depends on MODE)
 
-**Case A — `CONTEXT_DIR/graphify-out/` does not exist yet** (first run):
+#### MODE = minimal — move to the store (zero repo footprint)
 
 ```bash
+rm -rf "$CONTEXT_DIR/graphify-out"          # no-op on first run
 mv "$CWD/graphify-out" "$CONTEXT_DIR/graphify-out"
 ```
 
-**Case B — `CONTEXT_DIR/graphify-out/` already exists** (regeneration): a plain `mv` would nest it. Remove the old one first:
+Check: `<CWD>/graphify-out/` is gone, `<CONTEXT_DIR>/graphify-out/graph.json` exists.
 
-```bash
-rm -rf "$CONTEXT_DIR/graphify-out"
-mv "$CWD/graphify-out" "$CONTEXT_DIR/graphify-out"
-```
+#### MODE = full — keep in the repo (shared team artifact) AND copy to the store
 
-**Final check**: `<CWD>/graphify-out/` no longer exists, `<CONTEXT_DIR>/graphify-out/graph.json` exists.
+The graph stays in the repo for the team; a copy goes to the store so this skill's README and the SessionStart hook keep working.
+
+1. **Copy** (not move) to the store:
+   ```bash
+   rm -rf "$CONTEXT_DIR/graphify-out"
+   cp -R "$CWD/graphify-out" "$CONTEXT_DIR/graphify-out"
+   ```
+2. **Install the live Claude Code integration** (PreToolUse hook + CLAUDE.md section):
+   ```bash
+   graphify claude install
+   ```
+   Then **detect where it wrote**:
+   - Project-level (`./.claude/settings.json` and/or `./CLAUDE.md` changed) → committable, teammates get it on clone.
+   - Global-only (`~/.claude` changed) → add one line to the repo's `CLAUDE.md`: *"Live graph hook: run `graphify claude install` once after cloning."*
+3. **MCP server** — add graphify's MCP so agents query the graph live. Create/merge `<CWD>/.mcp.json`:
+   ```json
+   { "mcpServers": { "graphify": { "command": "graphify", "args": ["<CWD>", "--mcp"] } } }
+   ```
+4. **Hand the commit to the user** (this skill never runs git):
+   > Full mode left these in the repo — review and commit so the team gets the live graph:
+   > `graphify-out/` (graph.json + graph.html + GRAPH_REPORT.md), `.mcp.json`, and the graphify section in `CLAUDE.md` / `.claude/settings.json`.
+
+Check: `<CWD>/graphify-out/graph.json` AND `graph.html` exist, plus the store copy.
 
 ## Step 2.5 — Additional context tools (the socket)
 
-`graphify` gives the macro map. Other tools can drill deeper (e.g. a deep call-graph tracer, a security scanner, a test-coverage mapper). They plug in here through a generic socket — **this skill ships zero tools; the team adds their own.**
+`graphify` gives the macro map. Other tools can drill deeper (e.g. a deep call-graph tracer, a security scanner, a test-coverage mapper). They plug in here through a generic socket. **This addon ships one active tool — `code-test-patterns` (conventions & test patterns) — and the team adds their own.**
 
 Mechanism:
 

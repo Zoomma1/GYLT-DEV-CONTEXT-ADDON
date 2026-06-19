@@ -5,7 +5,7 @@
 This is the extension point: anyone can plug a deeper analyzer after graphify
 without modifying the skill.
 
-This addon ships **zero active tools** — only this contract and an example.
+This addon ships **one active tool** — `code-test-patterns` (extracts conventions & test patterns into the README) — plus this contract and an example. Add your own by dropping a file here.
 
 ## How it works
 

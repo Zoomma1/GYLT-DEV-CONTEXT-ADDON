@@ -92,7 +92,8 @@ fi
 if [ -d "$ADDON_DIR/project-context-tools" ]; then
   echo "Context-tools socket:"
   mkdir -p "$TOOLS_DST"
-  for f in "$ADDON_DIR"/project-context-tools/CONTRACT.md "$ADDON_DIR"/project-context-tools/*.example.md; do
+  # Seed everything: CONTRACT (doc), *.example.md (ignored by the skill), and active tools.
+  for f in "$ADDON_DIR"/project-context-tools/*.md; do
     [ -e "$f" ] || continue
     base="$(basename "$f")"
     if [ -e "$TOOLS_DST/$base" ]; then
