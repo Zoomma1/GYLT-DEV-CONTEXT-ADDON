@@ -17,7 +17,7 @@ It is the reference example of a GYLT addon — clone it, run `install.sh`, done
 |---|---|
 | `/prepare-project-for-agent` | Runs `graphify` on a repo (AST topology + Leiden clustering, ~10s, $0), then writes a curated README (communities, structural god nodes, anti-patterns, agent notes) to `~/.claude/project-contexts/<slug>/`. **Nothing is written into the target repo.** |
 | `load-project-context.sh` hook | At every SessionStart, auto-loads that README for the current repo (monorepo-aware). |
-| `/create-adr` | Records an Architecture Decision Record into the same context folder. Surfaced back to sessions as a live link. |
+| `/create-context-adr` | Records an Architecture Decision Record into the same context folder. Surfaced back to sessions as a live link. |
 | Context-tools socket | A documented extension point: plug deeper analyzers (call-graph tracers, scanners…) to run after graphify. Ships with zero active tools. |
 
 ## Install
@@ -47,7 +47,7 @@ the context injected automatically — you'll see `Project context loaded.` as t
 Record decisions as you go:
 
 ```
-/create-adr
+/create-context-adr
 ```
 
 ## Extending — the context-tools socket

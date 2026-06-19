@@ -1,13 +1,13 @@
 ---
-name: create-adr
-description: Create an Architecture Decision Record (ADR) for the current project, stored alongside its agent context in `~/.claude/project-contexts/<slug>/ADR/`. Invoke whenever a structural decision is made — architecture choice, convention, technical arbitration, pivot. Captures the decision from the session context, numbers it per the folder convention, generates a complete ADR (not an empty skeleton), and updates the ADR INDEX. The ADRs are surfaced back to future sessions as a live link by /prepare-project-for-agent.
+name: create-context-adr
+description: Create an Architecture Decision Record (ADR) for the current code repo, stored alongside its agent context in `~/.claude/project-contexts/<slug>/ADR/`. Invoke whenever a structural decision is made — architecture choice, convention, technical arbitration, pivot. Captures the decision from the session context, numbers it per the folder convention, generates a complete ADR (not an empty skeleton), and updates the ADR INDEX. The ADRs are surfaced back to future sessions as a live link by /prepare-project-for-agent.
 allowed-tools:
   - Bash
   - Read
   - Write
 ---
 
-# /create-adr
+# /create-context-adr
 
 Creates a homogeneous ADR for the current project without copying an existing ADR by hand. The skill *is* the format. ADRs live next to the project's agent context (`~/.claude/project-contexts/<slug>/ADR/`), so they travel with the context the agent already loads — no codebase pollution, no vault dependency.
 

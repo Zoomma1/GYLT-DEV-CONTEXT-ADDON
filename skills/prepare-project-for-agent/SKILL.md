@@ -139,7 +139,7 @@ Read `graph.json` only when `GRAPH_REPORT.md` is not enough to name a cluster or
 
 ## Step 3.5 — Resolve project ADRs (live link)
 
-Project ADRs written by the `create-adr` skill live in `CONTEXT_DIR/ADR/` (next to this context). They are decisions already made — surfaced to the agent as a **live link**: not copied into the README (which would go stale on every new ADR), but an instruction line + path the agent reads at runtime.
+Project ADRs written by the `create-context-adr` skill live in `CONTEXT_DIR/ADR/` (next to this context). They are decisions already made — surfaced to the agent as a **live link**: not copied into the README (which would go stale on every new ADR), but an instruction line + path the agent reads at runtime.
 
 Procedure:
 

@@ -4,7 +4,7 @@
   "gylt_addon_version": "1",
   "skills": [
     "prepare-project-for-agent",
-    "create-adr"
+    "create-context-adr"
   ],
   "hooks": [
     {
