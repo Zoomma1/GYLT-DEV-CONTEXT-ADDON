@@ -123,15 +123,29 @@ The graph stays in the repo for the team; a copy goes to the store so this skill
    Then **detect where it wrote**:
    - Project-level (`./.claude/settings.json` and/or `./CLAUDE.md` changed) → committable, teammates get it on clone.
    - Global-only (`~/.claude` changed) → add one line to the repo's `CLAUDE.md`: *"Live graph hook: run `graphify claude install` once after cloning."*
-3. **MCP server** — add graphify's MCP so agents query the graph live. Create/merge `<CWD>/.mcp.json`:
-   ```json
-   { "mcpServers": { "graphify": { "command": "graphify", "args": ["<CWD>", "--mcp"] } } }
+3. **Git hooks + merge driver** — `graphify claude install` does NOT cover the git side. Two pieces matter once `graph.json` is committed to a shared repo:
+   ```bash
+   graphify hook install   # post-commit/post-checkout: auto-refresh the committed graph after every commit/checkout
+   git config merge.graphify-union.driver "graphify merge-driver %O %A %B"   # union-merge graph.json (no manual conflict resolution)
    ```
-4. **Hand the commit to the user** (this skill never runs git):
+   - **Both live in `.git/` → NOT versioned**, so they protect only the local clone. To share them, the committed graph must stay coherent for everyone, so do BOTH of:
+     - Create/merge `<CWD>/.gitattributes` (committable) so the driver actually fires:
+       ```
+       graphify-out/graph.json merge=graphify-union
+       ```
+     - Add a **post-clone setup block** to the repo's `CLAUDE.md` (committable) telling contributors to run, once after cloning: `graphify claude install`, `graphify hook install`, and the `git config merge.graphify-union.driver …` line. Without it, teammates' committed graph drifts from their code and `graph.json` conflicts on merge.
+   - ⚠️ Heads-up — the post-commit hook fires after each `git commit` you make in this repo from now on (it runs `graphify update`); harmless but expect a ~10s pause per commit.
+4. **MCP server** — add graphify's MCP so agents query the graph live. Create/merge `<CWD>/.mcp.json` (use a relative path so it is portable for teammates):
+   ```json
+   { "mcpServers": { "graphify": { "command": "graphify", "args": [".", "--mcp"] } } }
+   ```
+5. **Check `.gitignore` before promising "the team gets it on clone"** — many repos ignore `CLAUDE.md`, `.claude`, and/or `graphify-out/` (sometimes flagged as "may contain sensitive information"). Run `git status --short -uall` and `git check-ignore -v <each artifact>`: if the full-mode artifacts are ignored, the team-sharing premise is broken. **Surface this to the user — do not silently un-ignore.** If they opt in, patch `.gitignore` selectively (e.g. keep `.claude/settings.local.json` and `graphify-out/cache/` + build metadata ignored; un-ignore only `.claude/settings.json`, `graph.json`, `graph.html`, `GRAPH_REPORT.md`).
+6. **Hand the commit to the user** (this skill never runs git — let `/commit` or the user do it):
    > Full mode left these in the repo — review and commit so the team gets the live graph:
-   > `graphify-out/` (graph.json + graph.html + GRAPH_REPORT.md), `.mcp.json`, and the graphify section in `CLAUDE.md` / `.claude/settings.json`.
+   > `graphify-out/` (graph.json + graph.html + GRAPH_REPORT.md), `.mcp.json`, `.gitattributes`, the post-clone block + graphify section in `CLAUDE.md`, `.claude/settings.json`, and any `.gitignore` change.
 
-Check: `<CWD>/graphify-out/graph.json` AND `graph.html` exist, plus the store copy.
+Check: `<CWD>/graphify-out/graph.json` AND `graph.html` exist, plus the store copy; `graphify hook status` shows both hooks installed; `.gitattributes` maps `graph.json` to the union driver.
+
 
 ## Step 2.5 — Additional context tools (the socket)
 
