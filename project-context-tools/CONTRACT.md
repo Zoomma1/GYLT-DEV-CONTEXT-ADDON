@@ -40,12 +40,17 @@ when: <one-line condition; the skill skips the tool if it does not apply to the 
 ## Rules
 
 - A tool that fails or is skipped must say so in its README section — never omit silently.
-- Tools run from the repo root but **write only** under `~/.claude/project-contexts/<slug>/`
-  (the "zero files in the codebase" rule of prepare-project-for-agent applies to tools too).
+- **Persistent output → the store, never the codebase.** A tool's lasting artifact lives under
+  `~/.claude/project-contexts/<slug>/`: a summary in the README plus a live-link to any heavy/raw
+  output folder copied there — same pattern as `graphify-out/`. Don't inline large output in the README.
+- **Transient working files in the repo must be git-ignored.** Some tools need machinery at the repo
+  root to run (a tracer CLI, a config file, a scratch DB). That is tolerated *only* if it is added to
+  `.gitignore` and never committed, and only the output is copied to the store — the codebase keeps
+  zero permanent footprint.
 - `*.example.md` files are documentation, never executed.
 
 ## Example use case
 
 A deep call-graph tracer (per-language) can plug in here: graphify gives the macro
 communities/gods, the tracer drills a specific entry point into an annotated call
-graph. See `example-tool.md` for the shape — replace the command with your own.
+graph. See `lines-of-code.example.md` for the shape — replace the command with your own.
