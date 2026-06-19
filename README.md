@@ -18,7 +18,7 @@ It is the reference example of a GYLT addon — clone it, run `install.sh`, done
 ## Install
 
 ```bash
-git clone https://github.com/<you>/GYLT-DEV-CONTEXT-ADDON
+git clone https://github.com/Zoomma1/GYLT-DEV-CONTEXT-ADDON
 cd GYLT-DEV-CONTEXT-ADDON
 bash install.sh
 ```
