@@ -1,0 +1,18 @@
+{
+  "name": "gylt-dev-context-addon",
+  "description": "Dev addon for GYLT: prepares a reusable, codebase-clean project context for Claude Code (graphify map + curated README + ADRs), auto-loaded at session start, with a socket to plug deeper analyzers.",
+  "gylt_addon_version": "1",
+  "skills": [
+    "prepare-project-for-agent",
+    "create-adr"
+  ],
+  "hooks": [
+    {
+      "file": "hooks/load-project-context.sh",
+      "event": "SessionStart"
+    }
+  ],
+  "extras": [
+    "project-context-tools"
+  ]
+}
